@@ -42,10 +42,14 @@ export const messageSlice = createSlice({
     name: "messages",
     initialState,
     reducers: {
-        getMessages: (state, { payload }: PayloadAction<Message[]>) => ({
-            ...state,
-            messageList: payload,
-        }),
+        getMessages: (state, { payload }: PayloadAction<Message[]>) => {
+            const messageList = payload;
+            return {
+                ...state,
+                messageList: [...messageList],
+            };
+        },
+
         deleteMessage: (state, { payload }: PayloadAction<number>) => {
             const updatedMessages = state.messageList.filter((message) => message.id !== payload);
             return {
@@ -61,6 +65,7 @@ export const messageSlice = createSlice({
                 }
                 return message;
             });
+            // redux toolkit uses immer which allows mutating objects
             state.messageList = updatedMessages;
             state.customMessages = [payload.customMessage];
         },
