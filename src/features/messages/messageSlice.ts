@@ -1,10 +1,8 @@
-/* eslint-disable functional/no-conditional-statement */
 /* eslint-disable functional/immutable-data */
-/* eslint-disable no-console */
+/* eslint-disable functional/no-conditional-statement */
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
-import { AppThunk } from "../../app/store";
-import { RootState } from "../../app/rootReducer";
+import { AppThunk, RootState } from "../../app/store";
 import { getMessagesList } from "../../fakeApi";
 import { messageToInsert } from "../../data-mocks/messages";
 
@@ -12,10 +10,11 @@ interface MessageContentObject {
     source: string;
     amount: number;
 }
+export type CustomMessage = typeof messageToInsert;
 
-interface MessageWithCustom {
+interface AddMessage {
     id: number;
-    customMessage: typeof messageToInsert;
+    customMessage: CustomMessage;
 }
 
 type MessageContent = Array<MessageContentObject> | string;
@@ -30,32 +29,48 @@ export type Message = {
     customMessage?: typeof messageToInsert;
 };
 
-const initialState: Array<Message> = [];
+export interface InitialState {
+    messageList: Message[];
+    customMessages?: CustomMessage[];
+}
+
+const initialState: InitialState = {
+    messageList: [],
+};
 
 export const messageSlice = createSlice({
     name: "messages",
-    initialState: { messageList: initialState },
+    initialState,
     reducers: {
-        getMessages: (state, { payload }: PayloadAction<Message[]>) => {
-            state.messageList = payload;
-        },
+        getMessages: (state, { payload }: PayloadAction<Message[]>) => ({
+            ...state,
+            messageList: payload,
+        }),
         deleteMessage: (state, { payload }: PayloadAction<number>) => {
             const updatedMessages = state.messageList.filter((message) => message.id !== payload);
-            state.messageList = updatedMessages;
+            return {
+                ...state,
+                messageList: updatedMessages,
+            };
         },
-        addCustomMessage: (state, { payload }: PayloadAction<MessageWithCustom>) => {
-            state.messageList = state.messageList.map((message) => {
+        addCustomMessage: (state, { payload }: PayloadAction<AddMessage>) => {
+            const updatedMessages = state.messageList.map((message) => {
                 if (message.id === payload.id) {
+                    // eslint-disable-next-line functional/immutable-data
                     message.customMessage = payload.customMessage;
                 }
                 return message;
             });
+            state.messageList = updatedMessages;
+            state.customMessages = [payload.customMessage];
         },
     },
 });
 
 export const { addCustomMessage, getMessages, deleteMessage } = messageSlice.actions;
-export const getMessagesAsync = (): AppThunk => async (dispatch) => {
+export const getMessagesAsync = (): AppThunk => async (
+    dispatch: (arg0: { payload: Message[]; type: string }) => void,
+) => {
     getMessagesList().subscribe((messages) => dispatch(getMessages(messages)));
 };
 

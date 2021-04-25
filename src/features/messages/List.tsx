@@ -3,7 +3,6 @@ import React, { useEffect } from "react";
 import { shallowEqual, useDispatch, useSelector } from "react-redux";
 
 import { messageToInsert } from "../../data-mocks/messages";
-
 import { Message } from "./Message";
 import {
     Message as MessageType,
@@ -11,16 +10,19 @@ import {
     getMessagesAsync,
     deleteMessage,
     addCustomMessage,
+    CustomMessage,
 } from "./messageSlice";
 
 export const List = (): JSX.Element => {
     const dispatch = useDispatch();
-    const { messageList } = useSelector(messageListSelector, shallowEqual);
+    const { messageList, customMessages } = useSelector(messageListSelector, shallowEqual);
 
     useEffect(() => {
         dispatch(getMessagesAsync());
     }, [dispatch]);
-    console.log(messageList);
+
+    console.log(messageList, customMessages);
+
     return (
         <>
             <button onClick={() => dispatch(deleteMessage(2))}>Delete</button>
@@ -31,10 +33,12 @@ export const List = (): JSX.Element => {
             >
                 Add
             </button>
-            {messageList &&
-                messageList.map((message: MessageType) => (
-                    <Message key={message.id ?? message.text} message={message} />
-                ))}
+            {messageList?.map((message: MessageType) => (
+                <Message key={message.id} message={message} />
+            ))}
+            {customMessages?.map((msg: CustomMessage) => (
+                <h1 key={msg.text}>{msg.text}</h1>
+            ))}
         </>
     );
 };
