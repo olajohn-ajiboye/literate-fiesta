@@ -1,5 +1,3 @@
-/* eslint-disable functional/immutable-data */
-/* eslint-disable functional/no-conditional-statement */
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 import { AppThunk, RootState } from "../../app/store";
@@ -58,15 +56,12 @@ export const messageSlice = createSlice({
             };
         },
         addCustomMessage: (state, { payload }: PayloadAction<AddMessage>) => {
-            const updatedMessages = state.messageList.map((message) => {
-                if (message.id === payload.id) {
-                    // eslint-disable-next-line functional/immutable-data
-                    message.customMessage = payload.customMessage;
-                }
-                return message;
-            });
-            // redux toolkit uses immer which allows mutating objects
-            state.messageList = updatedMessages;
+            const updatedMessages = state.messageList.filter(
+                (message) => message.id === payload.id,
+            );
+            /* eslint-disable functional/immutable-data */
+            // redux toolkit encourages mutating deeply nested objects because it uses immer
+            updatedMessages[0].customMessage = payload.customMessage;
             state.customMessages = [payload.customMessage];
         },
     },
@@ -79,5 +74,5 @@ export const getMessagesAsync = (): AppThunk => async (
     getMessagesList().subscribe((messages) => dispatch(getMessages(messages)));
 };
 
-export const messageListSelector = (state: RootState) => state.messages;
+export const messageListSelector = (state: RootState): RootState["messages"] => state.messages;
 export const messageReducer = messageSlice.reducer;
